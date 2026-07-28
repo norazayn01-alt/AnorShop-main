@@ -21,6 +21,7 @@ import { DashboardMainPage } from './pages/admin/DashboardMainPage.tsx'
 import { AdminProductsPage } from './pages/admin/AdminProductsPage.tsx'
 import { AdminCategoriesPage } from './pages/admin/AdminCategoriesPage.tsx'
 import { ProtectedRoute } from './components/auth/ProtectedRoute.tsx'
+import { PublicRoute } from './components/auth/PublicRoute.tsx'
 
 const theme = createTheme({
   colors: {
@@ -77,7 +78,13 @@ const router = createBrowserRouter([
   },
   {
     path: '/login',
-    element: <LoginPage />,
+    element: <PublicRoute />,
+    children: [
+      {
+        index: true,
+        element: <LoginPage />,
+      },
+    ],
   },
   {
     path: '/dashboard',

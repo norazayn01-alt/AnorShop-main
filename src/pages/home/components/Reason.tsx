@@ -1,6 +1,6 @@
 import { Container, Group, Stack, Text, ThemeIcon, Title } from '@mantine/core'
 
-import carImage from '../../../assets/images/reasonCar-image.png' // Replace with your image
+import carImage from '../../../assets/images/anorbank-logo.png' 
 
 const features = [
   {

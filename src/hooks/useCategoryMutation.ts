@@ -1,3 +1,4 @@
+import axios from 'axios'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { categoriesApi } from '../api/products'
 import type { ICategory, ICategoryForm } from '../types/product'
@@ -56,8 +57,21 @@ export const useDeleteCategory = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (id: number) =>
-      categoriesApi.delete(id).then((res) => res.data),
+    mutationFn: async (id: number) => {
+      try {
+        const res = await categoriesApi.delete(id)
+        return res.data
+      } catch (error) {
+        if (
+          axios.isAxiosError(error) &&
+          error.response?.status === 400 &&
+          error.response.data?.name === 'EntityNotFoundError'
+        ) {
+          return true
+        }
+        throw error
+      }
+    },
 
     onMutate: async (deletedId) => {
       await queryClient.cancelQueries({ queryKey: [CATEGORIES_KEY] })
@@ -67,10 +81,17 @@ export const useDeleteCategory = () => {
       ])
 
       queryClient.setQueryData<ICategory[]>([CATEGORIES_KEY], (old) =>
-        old?.filter((c) => c.id !== deletedId)
+        old?.filter((c) => c.id !== deletedId),
       )
 
       return { previousData }
+    },
+
+    onSuccess: () => {
+      notifications.show({
+        color: 'green',
+        message: "Kategoriya muvaffaqiyatli o'chirildi",
+      })
     },
 
     onError: (_err, _id, context) => {
@@ -79,7 +100,7 @@ export const useDeleteCategory = () => {
       }
       notifications.show({
         color: 'red',
-        message: "O'chirishda xatolik — o'zgarishlar bekor qilindi",
+        message: "O'chirishda xatolik yuz berdi",
       })
     },
 
@@ -88,3 +109,4 @@ export const useDeleteCategory = () => {
     },
   })
 }
+

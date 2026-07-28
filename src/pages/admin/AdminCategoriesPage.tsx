@@ -288,7 +288,7 @@ export const AdminCategoriesPage = () => {
             onClick={() => {
               if (deletingCategory) {
                 deleteMutation.mutate(deletingCategory.id, {
-                  onSuccess: () => setDeletingCategory(null),
+                  onSettled: () => setDeletingCategory(null),
                 })
               }
             }}

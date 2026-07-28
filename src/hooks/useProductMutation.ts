@@ -1,3 +1,4 @@
+import axios from 'axios'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { productsApi } from '../api/products'
 import type { IProduct, IProductForm } from '../types/product'
@@ -56,7 +57,22 @@ export const useDeleteProduct = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (id: number) => productsApi.delete(id).then((res) => res.data),
+    mutationFn: async (id: number) => {
+      try {
+        const res = await productsApi.delete(id)
+        return res.data
+      } catch (error) {
+        // API "EntityNotFoundError" — mahsulot allaqachon o'chirilgan
+        if (
+          axios.isAxiosError(error) &&
+          error.response?.status === 400 &&
+          error.response.data?.name === 'EntityNotFoundError'
+        ) {
+          return true
+        }
+        throw error
+      }
+    },
 
     onMutate: async (deletedId) => {
       await queryClient.cancelQueries({ queryKey: [PRODUCTS_KEY] })
@@ -67,10 +83,17 @@ export const useDeleteProduct = () => {
 
       queryClient.setQueriesData<IProduct[]>(
         { queryKey: [PRODUCTS_KEY] },
-        (old) => old?.filter((p) => p.id !== deletedId)
+        (old) => old?.filter((p) => p.id !== deletedId),
       )
 
       return { previousQueries }
+    },
+
+    onSuccess: () => {
+      notifications.show({
+        color: 'green',
+        message: "Mahsulot muvaffaqiyatli o'chirildi",
+      })
     },
 
     onError: (_err, _id, context) => {
@@ -79,7 +102,7 @@ export const useDeleteProduct = () => {
       })
       notifications.show({
         color: 'red',
-        message: "O'chirishda xatolik — o'zgarishlar bekor qilindi",
+        message: "O'chirishda xatolik yuz berdi",
       })
     },
 
@@ -88,3 +111,4 @@ export const useDeleteProduct = () => {
     },
   })
 }
+

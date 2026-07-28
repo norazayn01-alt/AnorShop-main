@@ -216,7 +216,7 @@ export const AdminProductsPage = () => {
   const confirmDelete = () => {
     if (deletingProduct) {
       deleteMutation.mutate(deletingProduct.id, {
-        onSuccess: () => {
+        onSettled: () => {
           setDeleteModalOpened(false)
           setDeletingProduct(null)
         },
